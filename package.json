@@ -34,7 +34,10 @@
     "client.js",
     "cordis.patch.yml",
     "locale/*.json",
-    "icon.svg"
+    "icon.svg",
+    "README.md",
+    "README.zh.md",
+    "LICENSE"
   ],
   "dsh": {
     "bundle": {
