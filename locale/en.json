@@ -1,0 +1,21 @@
+{
+  "meta": {
+    "title": "Hidden workspaces",
+    "description": "Put workspaces you do not need right now out of the sidebar, and bring them back at any time."
+  },
+  "action.hide": "Hide workspace",
+  "action.unhide": "Unhide",
+  "action.hideWithChildren": "Hide workspace (with children)",
+  "toast.hidden": "Hidden \u201c{name}\u201d",
+  "toast.unhidden": "Unhid \u201c{name}\u201d",
+  "toast.showAll": "All workspaces shown again",
+  "toast.undo": "Undo",
+  "toast.count": "Hidden workspaces ({n})",
+  "filter.label": "Filter workspaces",
+  "filter.hide": "Hide hidden workspaces",
+  "filter.show": "All workspaces (show hidden)",
+  "filter.only": "Only hidden",
+  "empty.none": "No workspaces match this filter",
+  "empty.showAll": "Show all workspaces",
+  "warn.structureChanged": "The sidebar layout changed, so hiding is unavailable. All workspaces were shown again."
+}

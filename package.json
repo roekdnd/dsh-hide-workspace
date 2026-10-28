@@ -1,0 +1,52 @@
+{
+  "name": "dsh-hide-workspace",
+  "version": "0.1.0",
+  "description": "Hide workspaces you do not need right now, without deleting them. A Hide workspace entry in the workspace row menu plus a three-state Filter workspaces group in the sidebar view options.",
+  "type": "module",
+  "license": "MIT",
+  "author": "roekdnd",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/roekdnd/dsh-hide-workspace.git"
+  },
+  "homepage": "https://github.com/roekdnd/dsh-hide-workspace#readme",
+  "bugs": {
+    "url": "https://github.com/roekdnd/dsh-hide-workspace/issues"
+  },
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "dsh-plugin",
+    "sidebar",
+    "workspace",
+    "workspaces",
+    "hide-workspace"
+  ],
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./package.json": "./package.json",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": []
+    }
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

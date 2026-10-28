@@ -1,0 +1,8 @@
+# dsh-hide-workspace bundle patch.
+#
+# One insert row mounts the plugin. The browser half is bound to the row whose
+# `name` is the BARE package name (a subpath row would carry no client half).
+- insert:
+    - id: hide-workspace
+      name: 'dsh-hide-workspace'
+      config: {}

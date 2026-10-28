@@ -1,0 +1,21 @@
+{
+  "meta": {
+    "title": "隐藏工作区",
+    "description": "把暂时不需要的工作区从左侧栏收起来，随时可以恢复。"
+  },
+  "action.hide": "隐藏工作区",
+  "action.unhide": "取消隐藏",
+  "action.hideWithChildren": "隐藏工作区（含子工作区）",
+  "toast.hidden": "已隐藏「{name}」",
+  "toast.unhidden": "已取消隐藏「{name}」",
+  "toast.showAll": "已恢复显示全部工作区",
+  "toast.undo": "撤销",
+  "toast.count": "隐藏的工作区（{n}）",
+  "filter.label": "筛选工作区",
+  "filter.hide": "隐藏已隐藏的工作区",
+  "filter.show": "全部工作区（显示已隐藏）",
+  "filter.only": "仅显示已隐藏",
+  "empty.none": "当前筛选下没有工作区",
+  "empty.showAll": "显示全部工作区",
+  "warn.structureChanged": "侧栏结构已变化，「隐藏工作区」暂不可用，已恢复全部显示。"
+}

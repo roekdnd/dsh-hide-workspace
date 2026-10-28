@@ -1,0 +1,20 @@
+# Extracted application bundle. Regenerate with tools/extract_asar.py;
+# never committed: it is ~206 MB of someone else's shipped code.
+asar/
+
+# Python byte-code from the tools/ scripts.
+__pycache__/
+*.pyc
+
+# Editor and OS noise.
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Local scratch
+*.local.*

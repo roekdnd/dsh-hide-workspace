@@ -1,0 +1,18 @@
+{
+  "section.workspaces": "工作区",
+  "viewOptions.label": "视图选项",
+  "filterBy.label": "筛选会话",
+  "viewOptions.hideArchived": "隐藏已归档",
+  "viewOptions.showArchived": "全部对话（显示已归档）",
+  "viewOptions.onlyArchived": "仅显示已归档",
+  "empty.noneArchived": "暂无已归档会话",
+  "workspace.add": "添加工作区",
+  "menu.addWorkspace": "添加工作区…",
+  "rename": "重命名",
+  "delete.workspace": "删除工作区",
+  "delete.desc": "将把“{name}”从工作区列表中移除。文件夹与会话记录会保留，其会话将显示在“未分组”下。",
+  "menu.archiveSession": "归档会话",
+  "menu.unarchiveSession": "取消归档",
+  "row.archived": "已归档",
+  "actions.workspace.aria": "工作区“{name}”的操作"
+}
