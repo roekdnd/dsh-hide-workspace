@@ -89,16 +89,42 @@ never on hashed class names:
 
 ### Self-healing
 
-Every 1.2 s the plugin checks the structure: **if ids are hidden but not a single
-workspace row renders** (four times in a row), it concludes the sidebar changed and then:
+Every 1.2 s the plugin re-checks the structure — but **"no rows rendered" is not the
+same as "the structure changed"**, and the two must be told apart or clearing the
+hidden set becomes collateral damage. It only concludes a structure change on
+*positive evidence* that the region is laid out on screen yet contains no list
+machinery at all:
+
+| Order | Condition | Result |
+|---|---|---|
+| 1 | workspace rows exist | healthy, reset the counter |
+| 2 | host mounted `[data-sidebar-collapsed]` | sidebar is collapsed → do not judge |
+| 3 | **within the region**: session rows / `role="treeitem"` search results / `[data-slot-error]` | still rendering → do not judge |
+| 4 | `[data-row-key="empty"]` placeholder present | anchors still match → do not judge |
+| 5 | `[data-slot="sidebar.workspaces"]` anchor absent | cannot judge → do not judge |
+| 6 | the region measures 0×0 | collapsed or hidden → do not judge |
+| 7 | region laid out, contains a `[role="tree"]`, renders no rows | empty search / loading → do not judge |
+| 8 | region laid out, no rows, no tree, no markers | **structure changed** |
+
+> Checks 2–7 all query **inside `[data-slot="sidebar.workspaces"]`**. Other trees exist
+> elsewhere in 应用 (the right sidebar, settings pages); a document-wide query would let
+> them silently satisfy the whitelist and disable the safety net altogether.
+
+Only case 8 acts, and only after four consecutive checks (~4.8 s). It then:
 
 1. **clears the hidden set, so everything is visible again** — it never leaves workspaces
    hidden with no way back;
 2. shows a notice: “The sidebar layout changed, so hiding is unavailable. All workspaces
    were shown again.”
 
-The worst case is therefore **a broken feature plus a visible reason**, never
-**workspaces silently gone**.
+So **narrowing the window, collapsing the sidebar manually, searching, or loading all
+preserve the hidden set**; only a real DOM change triggers the fallback. The worst case
+is still **a broken feature plus a visible reason**, never **workspaces silently gone**.
+
+> Why case 8 is still worth keeping: hiding works by resolving
+> `data-row-key^="workspace:"` rows and writing `display:none` on them. If those rows
+> stop rendering, the plugin's own inline styles disappear with them and everything is
+> visible already — so in that ambiguous state, *keeping the ids* is the safer choice.
 
 ### If that notice appears
 

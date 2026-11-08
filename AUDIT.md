@@ -5,7 +5,10 @@
 功能已确认可用（隐藏/恢复/菜单/筛选/不卡死）。以下是**代码逻辑审计发现的缺陷**，
 按严重程度排序，并标注修复状态。
 
-**审计后已修复 7 项，明确保留 1 项（有技术理由）。最终 `node test/check-logic.mjs` 47 项全过。**
+**审计后已修复 7 项，明确保留 1 项（有技术理由）。最终 `node test/check-logic.mjs` 61 项全过。**
+
+> 2026-11-08 补记：D5 的第一次修复没解决根因，用户压窄窗口实测复现（隐藏列表被清空）。
+> 已按「先证明区域在屏幕上、再谈有没有行」重做，并补了 14 条行为断言防止再次假修复。详见 D5。
 
 ---
 
@@ -68,7 +71,8 @@ const spans = [...workspaceRow.querySelectorAll('span')];
 
 影响：仅影响 toast 和命名，不影响隐藏行为本身。
 
-### D5. `guardAnchors()` 的折叠态判定不可靠　✅ 已修复
+### D5. `guardAnchors()` 的折叠态判定不可靠　✅ 已修复（第二次，前一次没修对）
+第一版判定：
 ```js
 if (document.querySelector('[data-row-key^="session:"], [data-slot-error], input[type="search"]') != null) { reset; return; }
 const region = document.querySelector('[data-row-key="empty"]')?.parentElement;
@@ -79,6 +83,34 @@ if (region != null && region.getBoundingClientRect().width === 0) { reset; retur
   第二个判定直接跳过
 - 于是连续 4 次（约 4.8 秒）看不到工作区行 → **误判结构变化 → 清空隐藏列表**
 - 用户在折叠态停留 5 秒再展开，隐藏全部丢失
+
+**第一次"修复"没解决根因。** 它把判定改成"从 `WORKSPACE_ROW` 往上找 `[role="tree"]` 量尺寸"，
+但恰恰在出问题的状态里，第一步就失败了：
+
+| 当初想用的证据 | 为什么在折叠态拿不到 |
+|---|---|
+| `WORKSPACE_ROW` 往上找 `[role="tree"]` | 折叠时 `WorkspaceBrowser` 以 `wide=false` 渲染，整棵树**根本没挂载** |
+| `[data-row-key="empty"]` 的父元素 | 列表非空时该元素不存在 |
+| `input[type="search"]` | 宿主实际渲染的是 `type="text"`，永远匹配不上 |
+
+三条全空 → 照样 `anchorMissStreak += 1` → 5 秒后清空。用户实测复现（截图里的
+「侧栏结构已变化…」toast 就是他压窗口后弹出来的）。
+
+**根因不在"怎么量"，而在判定方向错了**：它在**先数无行的次数**，再事后找理由豁免；
+而需要豁免的状态里，豁免所需的证据全都不存在。正确方向是**先确认"区域确实画在屏幕上"**，
+再谈"没行"，并且"无法判断"一律按不判定处理。
+
+现修复（判定顺序见 README 的表格）：① 宿主自述折叠（`[data-sidebar-collapsed]`）
+② 任何行/搜索结果/插槽崩溃面 ③ `[data-row-key="empty"]` ④ 区域锚点是否存在
+⑤ 区域尺寸 ⑥ 区域里有没有 `[role="tree"]`，全部不成立才累计。
+
+附带修掉的同类 bug：**搜索中**同样会误清空（树被换成扁平结果列表，行带
+`role="treeitem"` 但没有 `data-row-key`），现在被第 ② 条挡住。
+
+回归防线换成 8 条**行为断言**（原来那段 D5 断言只是 grep 源码里有没有
+`getBoundingClientRect`，所以第一次的假修复照样"通过"）：
+折叠标记 / 锚点缺失 / 0×0 / 搜索模式 / 空树 / 空列表占位 —— 隐藏列表必须保留；
+只有"已布局 + 无行 + 无树 + 无标记"才允许自愈，且 3 次以内不许动手。
 
 ### D6. `.closest('[role="treeitem"]')` 归属歧义　⚠️ 保留（见下）
 `onPointerDown` 里用 `el.closest('[role="treeitem"]')` 找触发菜单的行。
@@ -144,9 +176,18 @@ if (region != null && region.getBoundingClientRect().width === 0) { reset; retur
 先找 `[data-hide-workspace-title]` 或 `[class*="title"]`，找不到才回退到
 "最长的、不含 svg 的叶子 span"。避免将来行里多一个计数/时间就把名字取错。
 
-### D5 — 折叠态判定改用尺寸
-不再依赖 `[data-row-key="empty"]`（列表非空时它根本不存在），
-改为测量侧栏容器的 `getBoundingClientRect()`：宽或高为 0 视为折叠，不作判断。
+### D5 — 折叠态判定重做：先证明区域在屏幕上，再谈有没有行
+第一次只是"换了个测量的容器"，容器在折叠态依然不存在，问题原样复现（见上面 D5 的
+第二次记录）。现在的原则是：
+
+1. **先豁免，再计数**。宿主自述折叠（`[data-sidebar-collapsed]`）、任何行、
+   `[data-row-key="empty"]`、区域锚点缺失、区域 0×0、区域里有空 `[role="tree"]`，
+   任一命中就 `anchorMissStreak = 0` 并返回。
+2. **"无法判断"不等于"坏了"**。拿不到证据时重置计数，绝不累计。
+3. 只有"区域已布局、无行、无树、无任何标记"才累计，连续 4 次才清空。
+
+这也顺带修掉了**搜索模式**下的同一个 bug（结果行有 `role="treeitem"` 但没有
+`data-row-key`，旧代码同样会误判并清空）。
 
 ### D7 / D8 — 清理死代码
 `SESSION_ROW` 常量（无引用）和 `anchorsPresent()`（与 `workspaceRows()` 重复）已删除。

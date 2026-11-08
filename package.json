@@ -1,6 +1,6 @@
 {
   "name": "dsh-hide-workspace",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Hide workspaces you do not need right now, without deleting them. A Hide workspace entry in the workspace row menu plus a three-state Filter workspaces group in the sidebar view options.",
   "type": "module",
   "license": "MIT",

@@ -1156,53 +1156,99 @@ function apply(ctx) {
     list.appendChild(box);
   }
 
+  /**
+   * The sidebar region that hosts the workspace tree: the slot outlet anchor 应用
+   * renders around `sidebar.workspaces`. It is emitted with `display:contents`, so it
+   * is a 0x0 box by design and must be measured via its parent element - the element
+   * the host actually hides when the panel is collapsed away.
+   */
+  const WORKSPACE_REGION_ANCHOR = '[data-slot="sidebar.workspaces"]';
+
   let anchorMissStreak = 0;
 
   /**
    * Fail-open guard.
    *
-   * The sidebar always renders at least one `[data-row-key^="workspace:"]` row while
-   * it has a ready workspace baseline (an empty sidebar renders `[data-row-key="empty"]`
-   * instead). So "we expect rows but see none" means this plugin's anchors no longer
-   * match the shipped DOM - a DSH update changed the structure. Rather than risk
-   * leaving workspaces hidden with no way back, drop the hidden set and say so.
+   * Clearing the hidden set is a destructive fallback: it throws away the user's view
+   * preference. It may therefore only run on positive evidence that the structure
+   * really changed - that is, the workspace region is on screen, yet renders nothing
+   * this plugin recognizes and nothing the host renders as a list either.
    *
-   * The sidebar being collapsed to the 56px rail, or still loading, also renders no
-   * rows, so a miss is only acted on after several consecutive checks.
+   * Every other observation means "cannot judge", and resets the counter instead of
+   * advancing it. This ordering is load-bearing, because the states that must be
+   * whitelisted are exactly the states where the tree is not mounted, so any evidence
+   * gathered by *looking for the tree* is unavailable precisely when it is needed:
+   *
+   *  - the sidebar is collapsed (宿主在窄窗口 < 1024px 自动收起，或用户点收起). The
+   *    host mounts `data-sidebar-collapsed` on the frame and stops rendering the
+   *    workspace tree entirely, so `workspaceRows()` is empty *by design*. The old
+   *    guard tried to whitelist this by finding a container to measure, but the tree
+   *    was unmounted and its only other route (`[data-row-key="empty"]`) exists solely
+   *    when the list is empty. It fell through, counted to 4 (~5s), and wiped the
+   *    hidden list on a narrow window.
+   *  - still loading: skeleton rows, or sessions before workspaces stream in.
+   *  - a search in progress: the tree is swapped for a flat result list (rows carry
+   *    `role="treeitem"` but no `data-row-key`), possibly with no matches at all.
+   *
+   * Notably, the case that motivated the fallback cannot fail silently: hiding is
+   * applied as inline `display:none` on blocks resolved from `data-row-key^="workspace:"`
+   * rows, so if those rows stop rendering, the plugin's own styling disappears with
+   * them and everything is already visible. Keeping the ids stored is therefore the
+   * safer outcome in every ambiguous state.
+   *
+   * All row checks below are scoped to the workspace region rather than the document:
+   * other trees exist elsewhere in 应用 (the right sidebar, settings), and letting them
+   * satisfy the whitelist would silently disable the guard.
    */
   function guardAnchors() {
     if (hidden.length === 0) {
       anchorMissStreak = 0;
       return;
     }
+    // 1. Our own anchors are alive.
     if (workspaceRows().length > 0) {
       anchorMissStreak = 0;
       return;
     }
-    // Several states legitimately render no workspace rows. All of them mean "cannot
-    // judge", never "structure changed":
-    //  - still loading        -> skeleton rows, or session rows without workspaces yet
-    //  - a search in progress -> the tree is replaced by a flat result list
-    //  - the collapsed rail   -> the whole region is hidden
-    // The rail is detected by measuring the sidebar container rather than by looking for
-    // an [data-row-key="empty"] marker: that marker only exists when the list is empty,
-    // so relying on it let a collapsed non-empty sidebar be mistaken for a broken layout
-    // and silently cleared the hidden set.
-    if (document.querySelector('[data-row-key^="session:"], [data-slot-error], input[type="search"]') != null) {
+    // 2. The host itself says the sidebar is collapsed. Authoritative, and present in
+    //    every state where the tree is unmounted or hidden away.
+    if (document.querySelector('[data-sidebar-collapsed]') != null) {
       anchorMissStreak = 0;
       return;
     }
-    const sidebar = document.querySelector(WORKSPACE_ROW)?.closest('[role="tree"], [role="navigation"]')
-      ?? document.querySelector('[data-row-key="empty"]')?.parentElement
-      ?? null;
-    if (sidebar != null) {
-      const rect = sidebar.getBoundingClientRect();
-      // Zero width or zero height means the panel is collapsed away; do not judge it.
-      if (rect.width === 0 || rect.height === 0) {
-        anchorMissStreak = 0;
-        return;
-      }
+    // 3. Without the region anchor we cannot tell "collapsed" from "broken".
+    const anchor = document.querySelector(WORKSPACE_REGION_ANCHOR);
+    const boxed = anchor?.parentElement ?? null;
+    if (boxed == null) {
+      anchorMissStreak = 0;
+      return;
     }
+    // 4. A 0x0 box means the region is collapsed or hidden, not that it lost its rows.
+    const rect = boxed.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) {
+      anchorMissStreak = 0;
+      return;
+    }
+    // 5. Any row of any kind inside the region - session rows, search-result rows
+    //    (`role="treeitem"`), slot crash faces - proves the region is rendering and
+    //    that its markup is still recognizable.
+    if (boxed.querySelector('[data-row-key^="session:"], [role="treeitem"], [data-slot-error]') != null) {
+      anchorMissStreak = 0;
+      return;
+    }
+    // 6. The list-empty placeholder is produced by the same tree machinery as the rows,
+    //    so seeing it also proves the anchors still match.
+    if (boxed.querySelector('[data-row-key="empty"]') != null) {
+      anchorMissStreak = 0;
+      return;
+    }
+    // 7. A tree that renders no rows is a search with no matches, or still loading. Both
+    //    are legitimate empty states produced by markup we still recognize.
+    if (boxed.querySelector('[role="tree"]') != null) {
+      anchorMissStreak = 0;
+      return;
+    }
+    // 8. Laid out, empty, and with no list machinery at all: the structure changed.
     anchorMissStreak += 1;
     if (anchorMissStreak < 4) return;
     anchorMissStreak = 0;

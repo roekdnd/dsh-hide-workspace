@@ -334,10 +334,112 @@ console.log('[6] audited defects stay fixed');
   ok(/showToast/.test(toggle), 'Ctrl+H always reports what it did');
 
   // D5: the collapsed rail cannot be mistaken for a broken layout.
+  //
+  // This block is behavioural on purpose. The old check here only grepped the source for
+  // `getBoundingClientRect`, which kept passing while the guard still wiped the hidden
+  // list on a narrow window: the container it wanted to measure was unmounted, and the
+  // fallback route (`[data-row-key="empty"]`) only exists when the list is empty. So the
+  // states are now executed against a scripted document instead of pattern-matched.
   const guard = grab('guardAnchors');
   ok(/getBoundingClientRect/.test(guard), 'rail detection measures the container');
-  ok(!/data-row-key="empty"\]'\)\?\.parentElement \?\? null;\s*\n\s*if \(region/.test(guard),
-    'rail detection no longer depends on the empty marker');
+  ok(/\[data-sidebar-collapsed\]/.test(guard),
+    'the host collapse marker is consulted before anything is counted');
+  ok(/const WORKSPACE_REGION_ANCHOR = '\[data-slot="sidebar\.workspaces"\]';/.test(src),
+    'the slot anchor identifies the workspace region');
+  ok(/document\.querySelector\(WORKSPACE_REGION_ANCHOR\)/.test(guard),
+    'the guard resolves the region through that anchor');
+  ok(guard.indexOf('[data-sidebar-collapsed]') < guard.indexOf('anchorMissStreak += 1'),
+    'collapse is ruled out before the miss counter can advance');
+  ok(!/input\[type="search"\]/.test(guard),
+    'the never-matching input[type="search"] probe is gone');
+
+  {
+    // A scripted document. Every ambiguous state must stay silent (streak reset, hidden
+    // set intact); only a laid-out region with no list machinery at all may fail open.
+    // The region and the document are separate query surfaces on purpose: the guard must
+    // judge the workspace region, not any tree anywhere in the app.
+    function runGuard(state, passes) {
+      const step = passes === undefined ? 20 : passes;
+      const rect = state.rect ?? { width: 280, height: 600 };
+      const region = state.region ?? {};
+      // The guard passes comma-separated selector lists, so evaluate each part and OR
+      // them, exactly like querySelector does.
+      const matches = (scope, sel) => sel.split(',').some((part) => {
+        const one = part.trim();
+        if (one === '[data-row-key^="session:"]') return scope.sessionRows === true;
+        if (one === '[role="treeitem"]') return scope.treeitems === true;
+        if (one === '[data-slot-error]') return scope.slotError === true;
+        if (one === '[data-row-key="empty"]') return scope.emptyPlaceholder === true;
+        if (one === '[role="tree"]') return scope.tree === true;
+        return false;
+      });
+      const boxed = {
+        getBoundingClientRect: () => rect,
+        querySelector: (sel) => (matches(region, sel) ? {} : null),
+      };
+      const anchor = { parentElement: boxed };
+      const doc = {
+        querySelector(sel) {
+          if (sel === '[data-sidebar-collapsed]') return state.collapsed === true ? {} : null;
+          if (sel === '[data-slot="sidebar.workspaces"]') return state.anchorMissing === true ? null : anchor;
+          return null;
+        },
+      };
+      const body = [
+        "let anchorMissStreak = 0;",
+        "let hidden = ['keep-me'];",
+        "const WORKSPACE_REGION_ANCHOR = '[data-slot=\"sidebar.workspaces\"]';",
+        guard,
+        "let toasts = 0;",
+        "let persisted = 0;",
+        "const api = {};",
+        "const t = (k) => k;",
+        "function persist() { persisted += 1; }",
+        "function showToast() { toasts += 1; }",
+        "function workspaceRows() { return []; }",
+        "return () => {",
+        "  for (let i = 0; i < " + step + "; i += 1) guardAnchors();",
+        "  return { streak: anchorMissStreak, hidden: hidden.slice(), toasts, persisted };",
+        "};",
+      ].join(String.fromCharCode(10));
+      return new Function('document', body)(doc)();
+    }
+
+    const silent = [
+      ['narrow window: the host reports the sidebar collapsed', { collapsed: true }],
+      ['the workspace region anchor is not mounted', { anchorMissing: true }],
+      ['the region measures 0x0', { rect: { width: 0, height: 0 }, region: { tree: true } }],
+      ['search mode: rows have role=treeitem but no data-row-key', { region: { treeitems: true } }],
+      ['loading or a search with no matches: region laid out, empty tree', { region: { tree: true } }],
+      ['an empty workspace list renders the [data-row-key="empty"] placeholder', { region: { emptyPlaceholder: true, tree: true } }],
+      ['a session row is present without a workspace row (still loading)', { region: { sessionRows: true } }],
+    ];
+    for (const [label, state] of silent) {
+      const r = runGuard(state);
+      ok(r.streak === 0 && r.hidden.join(',') === 'keep-me' && r.toasts === 0 && r.persisted === 0,
+        'hidden set is preserved: ' + label,
+        'streak=' + r.streak + ' hidden=' + r.hidden.join('|') + ' toasts=' + r.toasts + ' writes=' + r.persisted);
+    }
+
+    // Scoping matters: trees outside the workspace region must not satisfy the guard,
+    // otherwise the safety net silently stops working.
+    const outerTreeOnly = runGuard({ region: {} });
+    ok(outerTreeOnly.toasts === 1 && outerTreeOnly.hidden.length === 0,
+      'a tree elsewhere in the app does not whitelist a broken workspace region',
+      'toasts=' + outerTreeOnly.toasts);
+
+    // The one state that must still fire: laid out, no rows, no tree, no markers.
+    const broken = runGuard({ region: {} });
+    ok(broken.toasts === 1 && broken.hidden.length === 0,
+      'a genuinely laid-out but structureless region still fails open',
+      'streak=' + broken.streak + ' hidden=' + broken.hidden.join('|') + ' toasts=' + broken.toasts);
+
+    // ...and never before the streak threshold, so a momentary re-render is harmless.
+    const transient = runGuard({ region: {} }, 3);
+    ok(transient.toasts === 0 && transient.hidden.join(',') === 'keep-me',
+      'a short-lived miss does not clear the hidden set',
+      'streak=' + transient.streak + ' toasts=' + transient.toasts);
+  }
 
   // D7/D8: dead code removed.
   ok(!/SESSION_ROW/.test(src), 'unused SESSION_ROW constant removed');
