@@ -25,21 +25,35 @@
 本插件是一个 **bundle**，自带有 `cordis.patch.yml` 和 `dsh.bundle.patch` 声明，
 所以它能出现在「设置 → 插件」面板里（有卡片、开关、卸载）。
 
-### 方式一：从 GitHub 安装（推荐）
+### 安装入口：只能走 App 内的「设置 → 插件」
 
-```sh
-dsh plugin --profile desktop add github:roekdnd/dsh-hide-workspace
-```
+> **不要用 `dsh plugin --profile desktop add ...`。** 该命令会被 CLI 直接拒绝：
+>
+> ```
+> error: profile "desktop" is managed exclusively by the Electron application
+> ```
+>
+> 这是有意设计（`rejectElectronProfile`）。只有 Desktop 载体自身调用 CLI 时才带
+> `manageDesktopProfile: true` 放行，外部终端拿不到这个开关。桌面端 profile 就是
+> `desktop`，所以**命令行没有任何办法装到桌面端**。
 
-安装后**重启 DSH**。
+正确做法是在 应用 里操作：
 
-### 方式二：从本地检出安装
+1. 打开 **设置 → 插件**
+2. 点 **安装插件**
+3. 在「包名或地址」里填下面任一形式，然后点 **安装**
+4. **重启 应用**
 
-```sh
-dsh plugin --profile desktop add <本仓库的绝对路径>
-```
+| 装哪种 | 在输入框里填 |
+|---|---|
+| 从 GitHub | `github:roekdnd/dsh-hide-workspace` |
+| npm 包名 | `dsh-hide-workspace`（若已发布到 npm） |
+| 本地检出 | 本仓库目录的**绝对路径** |
 
-安装后**重启 DSH**（新包首次可解析需要重启）。
+> 插件页也提供「安装源」选择（默认源 / 自定义 npm 源），凭据放本机 `~/.npmrc`。
+> 安装前它会要求你确认来源可信——插件以你的权限在本机运行。
+
+装好后**重启 应用**（新包首次可解析需要重启）。
 
 改动 `client.js` 后刷新页面即可，源码无需构建——`client.js` 本身就是最终产物。
 

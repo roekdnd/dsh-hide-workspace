@@ -848,8 +848,9 @@ uninstall — all without hand-editing profile files.**
   profile using that installation's runtime." Enforced at `ASAR/dsh/lib/bin.js:119`
   (`if (!manageDesktopProfile) rejectElectronProfile(plugin, options.profile)`), and only
   `dsh-desktop-host/lib/cli.js` sets `manageDesktopProfile: true`.
-  ⇒ **from a plain shell, hand-editing files is the only route**; `dsh plugin --profile desktop add …`
-  will refuse.
+  ⇒ **from a plain shell, `dsh plugin --profile desktop add …` will refuse.** Two working routes
+  remain: the in-app **Settings → Plugins → Install plugin** panel (which drives the Desktop-installed
+  CLI with `manageDesktopProfile: true`), or hand-editing the profile files.
 - Installation is **not** activation — `ASAR/dsh-client-ui-plugin-manager/README.md`: "A successful
   installation does not certify that a module can activate."
 - A bundle that provides the management components is **locked** (cannot be switched off);

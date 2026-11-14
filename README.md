@@ -27,22 +27,39 @@ That is a deliberate escape hatch.
 This plugin is a **bundle**: it ships `cordis.patch.yml` and a `dsh.bundle.patch`
 declaration, so it appears in Settings → Plugins with a card, a toggle and an uninstall.
 
-### From GitHub (recommended)
+### Install from inside 应用 → Settings → Plugins
 
-```sh
-dsh plugin --profile desktop add github:roekdnd/dsh-hide-workspace
-```
+> **Do not run `dsh plugin --profile desktop add ...`.** The CLI refuses it outright:
+>
+> ```
+> error: profile "desktop" is managed exclusively by the Electron application
+> ```
+>
+> That rejection is deliberate (`rejectElectronProfile`). The gate is only lifted when the
+> Desktop carrier itself calls the CLI with `manageDesktopProfile: true`, which an external
+> terminal never has. The desktop profile *is* `desktop`, so **there is no command-line
+> path to installing into the desktop app.**
 
-Restart DSH afterwards.
+Install it in the app instead:
 
-### From a local checkout
+1. Open **Settings → Plugins**
+2. Click **Install plugin**
+3. Put one of the forms below into "package name or address", then click **Install**
+4. **Restart 应用**
 
-```sh
-dsh plugin --profile desktop add <absolute path to this repository>
-```
+| Source | What to enter |
+|---|---|
+| GitHub | `github:roekdnd/dsh-hide-workspace` |
+| npm package | `dsh-hide-workspace` (once published) |
+| Local checkout | the **absolute path** to this repository |
 
-Restart DSH (a new package needs a restart to resolve). After that, editing
-`client.js` only needs a page refresh — there is no build step, `client.js` *is* the artifact.
+> The panel also has a registry selector (default registry or a custom npm registry);
+> credentials belong in your local `~/.npmrc`. It asks you to confirm the source is
+> trusted, because plugins run with your permissions.
+
+After installing, **restart 应用** (a new package needs a restart to resolve). After that,
+editing `client.js` only needs a page refresh — there is no build step, `client.js` *is*
+the artifact.
 
 ### Why not edit the profile by hand
 
