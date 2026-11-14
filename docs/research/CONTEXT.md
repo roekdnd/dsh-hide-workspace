@@ -12,9 +12,15 @@ add **temporarily hide a workspace** (reversible, non-destructive).
 This directory records the feasibility analysis behind that goal, including the options that were
 ruled out and why.
 
+> **Baseline.** The findings below were produced against 应用 **0.2.1-rc.3**. Line numbers quoted
+> throughout this directory refer to that build. The shipped `client.js` was later re-checked against
+> **0.2.2-rc.2**; see `AUDIT.md` and the self-healing section of the READMEs for what changed. When
+> reading a `WS:NNNN` anchor against a different build, look up the surrounding symbol rather than
+> trusting the line number.
+
 ## Machine / install facts (verified)
-- DSH desktop app installed at: `<DSH_INSTALL>` (Electron; `DeepSeek Harness.exe`)
-- App bundle: `<DSH_INSTALL>\resources\app.asar` (182 MB)
+- App: any Electron install of the runtime (`DeepSeek Harness.exe`)
+- App bundle: `<install>\resources\app.asar`
 - The asar was extracted to a scratch directory (regenerate with `tools/extract_asar.py`)
   - Unpacked npm packages live in `asar/dsh/node_modules/@deepseek-ai/` (305 packages)
 - User profile: `%USERPROFILE%\.dsh\profiles\desktop`
