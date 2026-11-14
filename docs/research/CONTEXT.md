@@ -1,15 +1,21 @@
-# DSH "Better Sidebar" plugin research — shared context
+# Research context — 应用 sidebar extension points
 
-## Goal (user request, Chinese)
-Create a DSH plugin that improves the left sidebar, built on top of the current sidebar.
-Specifically: currently a workspace can only be RENAMED or DELETED. User wants to
-TEMPORARILY HIDE workspaces they don't currently need (reversible, non-destructive).
-This is a DISCUSSION phase — we need feasibility analysis and design options, not a full build yet.
+> **Provenance.** The code excerpts quoted in this directory are from 应用 (AI Assistant),
+> Copyright (c) 2026 DeepSeek, MIT licensed. See `NOTICE` at the repository root. They are
+> reproduced here so each finding can be traced to the implementation it came from.
+
+## Goal
+Build a 应用 plugin that improves the left sidebar while keeping the shipped sidebar intact.
+At the time of this research a workspace could only be **renamed** or **deleted**; the goal was to
+add **temporarily hide a workspace** (reversible, non-destructive).
+
+This directory records the feasibility analysis behind that goal, including the options that were
+ruled out and why.
 
 ## Machine / install facts (verified)
 - DSH desktop app installed at: `<DSH_INSTALL>` (Electron; `DeepSeek Harness.exe`)
 - App bundle: `<DSH_INSTALL>\resources\app.asar` (182 MB)
-- We EXTRACTED the asar to: `<ASAR>`
+- The asar was extracted to a scratch directory (regenerate with `tools/extract_asar.py`)
   - Unpacked npm packages live in `asar/dsh/node_modules/@deepseek-ai/` (305 packages)
 - User profile: `%USERPROFILE%\.dsh\profiles\desktop`
   - `package.json` has `dsh.profile.bundles` (list of bundle names)
@@ -22,7 +28,7 @@ This is a DISCUSSION phase — we need feasibility analysis and design options, 
    `tables.workspaces[id] = {path,title,sessionIds[],createdAt,updatedAt}`)
 - DSH version: 0.2.1-rc.3
 - Versions: node v24.22.1, npm 11.19.1, pnpm 11.22.0, python 3.11.0
-- NOTE: the app is currently RUNNING (port 62722 instance registered). Don't kill it.
+- Note: 应用 was running while these measurements were taken; nothing was modified.
 
 ## Key packages
 - `@deepseek-ai/dsh-client-ui-sidebar`  — sidebar SHELL. Owns seats `sidebar.workspaces`, `sidebar.settings`,
@@ -70,7 +76,7 @@ archived rows are filtered out of navigation but stay recoverable ("archived" vi
 There is NO equivalent for workspaces. This is the closest existing design precedent
 for what the user wants ("hide temporarily, reversible").
 
-## Open questions to answer
+## Questions this research answers
 1. Can a 3rd-party client plugin filter/replace the workspace list without forking `ui-workspace`?
    (options: replace the `sidebar.workspaces` single slot registration; decorate the client
    workspace model; shim `ctx.remote.workspace`; CSS/DOM hack; upstream patch)

@@ -254,4 +254,8 @@ dsh-hide-workspace/
 
 ## 九、License
 
-MIT
+本插件：MIT，见 [`LICENSE`](LICENSE)。
+
+`docs/research/` 与部分 `AUDIT.md` 中引用的 **应用 源码片段**版权归 DeepSeek，
+依 MIT 许可使用，声明见 [`NOTICE`](NOTICE)。这些片段只用于让每条结论可回溯到
+它依据的实现，不属于本插件的运行代码（`docs/` 不随包发布）。

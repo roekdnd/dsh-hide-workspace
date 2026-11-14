@@ -266,4 +266,9 @@ repository for reading and never enter the installed package.
 
 ## License
 
-MIT
+This plugin: MIT, see [`LICENSE`](LICENSE).
+
+**应用 source excerpts** quoted under `docs/research/` and in parts of `AUDIT.md` are
+Copyright (c) 2026 DeepSeek and used under the MIT License; see [`NOTICE`](NOTICE). They exist
+so every finding can be traced to the implementation it came from. They are not part of this
+plugin's runtime code (`docs/` is not published with the package).

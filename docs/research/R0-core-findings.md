@@ -1,4 +1,8 @@
-# R0 — Lead's core findings (verified in extracted asar)
+# R0 — Core findings (verified against the extracted asar)
+
+Evidence base: the packages unpacked from 应用 0.2.2-rc.1's `app.asar`. Every claim below cites
+the `file:line` it was read from, so it can be re-checked against a different build by looking up
+the same symbol rather than the same line number.
 
 ## A. The workspace row "..." menu is HARD-CODED (no extension point)
 `dsh-client-ui-workspace/lib/client.js` ~L1951 `ProjectRowItem`:

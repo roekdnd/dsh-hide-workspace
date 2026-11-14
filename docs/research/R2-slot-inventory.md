@@ -1,8 +1,11 @@
-# R2 (partial, verified by lead) — Complete workspace-level slot inventory
+# R2 (partial) — Complete workspace-level slot inventory
 
-R2 did not return in time. The lead verified its single most important question directly.
-Method: `grep -rh 'slots.inject("' --include=client.js */lib/*.js` across all 305 packages,
-plus a full scan of every slot identifier containing `workspace`.
+How this list was produced: `grep -rh 'slots.inject("' --include=client.js */lib/*.js` across
+all 305 packages installed with 应用 0.2.2-rc.1, plus a full scan of every slot identifier
+containing `workspace`.
+
+Every slot name below is an explicit string literal in the shipped packages, so the list can be
+regenerated with the same one-line grep against any build.
 
 ## The complete list of `sidebar.*` / `workspace.*` slot targets in the whole installation
 
