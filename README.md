@@ -1,211 +1,199 @@
-# dsh-hide-workspace
+# dsh-hide-workspace — 隐藏工作区
 
-Put workspaces you do not need right now out of the DeepSeek Harness sidebar,
-and bring them back at any time. Nothing is deleted, archived or rewritten.
+语言：**中文** | [English](README.en.md)
 
-Language: **English** | [中文](README.zh.md)
+把暂时不需要的工作区从左侧栏收起来，随时恢复。不删除任何东西。
 
 ---
 
-## What it does
+## 一、它做了什么
 
-| Entry point | Behaviour |
+| 入口 | 行为 |
 |---|---|
-| Workspace row `...` menu → **Hide workspace** | The whole group (child workspaces and their sessions included) leaves the sidebar |
-| Same menu on a hidden workspace → **Unhide workspace** | Puts it back; the label switches on its own |
-| View options → **Filter workspaces** (three states) | Hide hidden / show all / only hidden |
-| **Ctrl + H** | Nothing hidden → hides the workspace of the current session; something hidden → **restores everything** |
-| Undo in the toast | Takes the last hide back immediately |
+| 工作区行 `⋯` 菜单 → **隐藏工作区** | 整组（含子工作区与其会话）从侧栏消失 |
+| 已隐藏的工作区 `⋯` 菜单 → **取消隐藏** | 放回来（该项文案自动切换） |
+| 视图选项 → **筛选工作区**（三态） | 隐藏已隐藏 / 显示全部 / 仅显示已隐藏 |
+| **Ctrl + H** | 无隐藏项 → 隐藏当前会话所在工作区；有隐藏项 → **恢复全部** |
+| 隐藏后的 toast → **撤销** | 立即救回 |
 
-A hidden workspace **can still be found with search** (search rows are unaffected).
-That is a deliberate escape hatch.
+被隐藏的工作区**仍然可以被搜索到**（搜索行不受影响），这是刻意保留的应急通道。
 
 ---
 
-## Install
+## 二、安装
 
-This plugin is a **bundle**: it ships `cordis.patch.yml` and a `dsh.bundle.patch`
-declaration, so it appears in Settings → Plugins with a card, a toggle and an uninstall.
+本插件是一个 **bundle**，自带有 `cordis.patch.yml` 和 `dsh.bundle.patch` 声明，
+所以它能出现在「设置 → 插件」面板里（有卡片、开关、卸载）。
 
-### Install from inside 应用 → Settings → Plugins
+### 安装入口：只能走 App 内的「设置 → 插件」
 
-> **Do not run `dsh plugin --profile desktop add ...`.** The CLI refuses it outright:
+> **不要用 `dsh plugin --profile desktop add ...`。** 该命令会被 CLI 直接拒绝：
 >
 > ```
 > error: profile "desktop" is managed exclusively by the Electron application
 > ```
 >
-> That rejection is deliberate (`rejectElectronProfile`). The gate is only lifted when the
-> Desktop carrier itself calls the CLI with `manageDesktopProfile: true`, which an external
-> terminal never has. The desktop profile *is* `desktop`, so **there is no command-line
-> path to installing into the desktop app.**
+> 这是有意设计（`rejectElectronProfile`）。只有 Desktop 载体自身调用 CLI 时才带
+> `manageDesktopProfile: true` 放行，外部终端拿不到这个开关。桌面端 profile 就是
+> `desktop`，所以**命令行没有任何办法装到桌面端**。
 
-Install it in the app instead:
+正确做法是在 应用 里操作：
 
-1. Open **Settings → Plugins**
-2. Click **Install plugin**
-3. Put one of the forms below into "package name or address", then click **Install**
-4. **Restart 应用**
+1. 打开 **设置 → 插件**
+2. 点 **安装插件**
+3. 在「包名或地址」里填下面任一形式，然后点 **安装**
+4. **重启 应用**
 
-| Source | What to enter |
+| 装哪种 | 在输入框里填 |
 |---|---|
-| GitHub | `github:roekdnd/dsh-hide-workspace` |
-| npm package | `dsh-hide-workspace` (once published) |
-| Local checkout | the **absolute path** to this repository |
+| 从 GitHub | `github:roekdnd/dsh-hide-workspace` |
+| npm 包名 | `dsh-hide-workspace`（若已发布到 npm） |
+| 本地检出 | 本仓库目录的**绝对路径** |
 
-> The panel also has a registry selector (default registry or a custom npm registry);
-> credentials belong in your local `~/.npmrc`. It asks you to confirm the source is
-> trusted, because plugins run with your permissions.
+> 插件页也提供「安装源」选择（默认源 / 自定义 npm 源），凭据放本机 `~/.npmrc`。
+> 安装前它会要求你确认来源可信——插件以你的权限在本机运行。
 
-After installing, **restart 应用** (a new package needs a restart to resolve). After that,
-editing `client.js` only needs a page refresh — there is no build step, `client.js` *is*
-the artifact.
+装好后**重启 应用**（新包首次可解析需要重启）。
 
-### Why not edit the profile by hand
+改动 `client.js` 后刷新页面即可，源码无需构建——`client.js` 本身就是最终产物。
 
-Adding `link:` to the profile and running pnpm yourself also works, but:
+### 为什么不建议手改 profile
 
-- Let the package manager create the link. Junctions (`mklink /J`) do satisfy
-  `isSymbolicLink() === true` in Node and work fine, but `pnpm add link:` also records
-  the dependency in the lockfile.
-- Plugins added that way do **not** show up in the Plugins panel (it only manages bundles).
-- The DSH docs ask you not to hand-write the profile `package.json` / `cordis.patch.yml`,
-  or to run pnpm against the profile yourself.
+手改 `~/.dsh/profiles/desktop/cordis.patch.yml` + `pnpm add link:` 也能装，但有三个坑：
+
+- 要走 `pnpm add link:`，别手写 node_modules 里的链接。
+  实测 junction（`mklink /J`）在 Node 里同样满足 `isSymbolicLink() === true`，
+  能正常工作；但让包管理器来建链接更稳妥，它同时会写进 lockfile。
+- 走手改路线时插件**不会**出现在插件面板里（面板只管理 bundle）
+- 官方明确说不要手写 profile 的 `package.json` / `cordis.patch.yml`，也不要自己跑 pnpm
 
 ---
 
-## Where state lives
+## 三、数据存在哪
 
 ```
-%USERPROFILE%\.dsh\...           (not touched)
-browser localStorage:
-  dsh.hide-workspace.hidden.v1   ← ids of hidden workspaces
-  dsh.hide-workspace.filter.v1   ← the selected filter state
+%USERPROFILE%\.dsh\... （不涉及）
+浏览器 localStorage:
+  dsh.hide-workspace.hidden.v1   ← 被隐藏的工作区 id 列表
+  dsh.hide-workspace.filter.v1   ← 筛选工作区状态
 ```
 
-**`workspace.json` is deliberately left alone.** It is the storage unit owned by
-`dsh-workspace`, and its record schema is zod **strip mode** — an extra field is dropped
-silently, with no error. localStorage also matches where DSH itself puts layout
-preferences: `ui-workspace` keeps its own expansion state and session order there.
+**刻意不碰 `workspace.json`**。原因：它是 `dsh-workspace` 独占的存储域，
+且其记录是 zod **strip 模式** —— 往里塞自定义字段会被**静默丢弃且不报错**。
+用 localStorage 也符合 DSH 自身的边界：布局类偏好本来就是浏览器本地
+（`ui-workspace` 自己的展开状态和会话排序就是存 localStorage 的）。
 
-Trade-off: **no cross-device sync.** Using DSH on the web and on the desktop keeps one
-set each.
+代价：**不跨设备同步**。同时在 Web 端和桌面端使用时会各有一份。
 
 ---
 
-## What happens when DSH updates
+## 四、DSH 更新后会怎样（重要）
 
-The sidebar is not a stable API. The plugin only depends on **explicit string anchors**,
-never on hashed class names:
+DSH 的界面会随版本变化。插件只依赖**显式字符串锚点**，不依赖任何哈希类名：
 
-| Dependency | Stability |
+| 依赖对象 | 稳定性 |
 |---|---|
-| `data-row-key="workspace:<uuid>"` | High (a literal in the source, not a hash) |
-| `role="menuitem"` / `aria-selected` | High |
-| Hashed class names (e.g. `XXXXXX_groupSection`) | **Not used at all** |
+| `data-row-key="workspace:<uuid>"` | 高（源码里写死的字符串，不是哈希） |
+| `role="menuitem"` / `aria-selected` | 高 |
+| 哈希类名（如 `XXXXXX_groupSection`） | **完全不依赖** |
 
-### Self-healing
+### 自愈机制
 
-Every 1.2 s the plugin re-checks the structure — but **"no rows rendered" is not the
-same as "the structure changed"**, and the two must be told apart or clearing the
-hidden set becomes collateral damage. It only concludes a structure change on
-*positive evidence* that the region is laid out on screen yet contains no list
-machinery at all:
+插件每 1.2 秒做一次结构体检，但**「看不到行」不等于「结构坏了」**——这两件事必须先分清，否则「清空隐藏列表」会变成误伤。
 
-| Order | Condition | Result |
+只有在**正面证据表明区域确实画在屏幕上、却连列表机制都不存在**时才判为结构变化：
+
+| 判定顺序 | 命中条件 | 结果 |
 |---|---|---|
-| 1 | workspace rows exist | healthy, reset the counter |
-| 2 | host mounted `[data-sidebar-collapsed]` | sidebar is collapsed → do not judge |
-| 3 | **within the region**: session rows / `role="treeitem"` search results / `[data-slot-error]` | still rendering → do not judge |
-| 4 | `[data-row-key="empty"]` placeholder present | anchors still match → do not judge |
-| 5 | `[data-slot="sidebar.workspaces"]` anchor absent | cannot judge → do not judge |
-| 6 | the region measures 0×0 | collapsed or hidden → do not judge |
-| 7 | region laid out, contains a `[role="tree"]`, renders no rows | empty search / loading → do not judge |
-| 8 | region laid out, no rows, no tree, no markers | **structure changed** |
+| 1 | 有工作区行 | 正常，重置计数 |
+| 2 | 宿主挂了 `[data-sidebar-collapsed]` | 侧栏是收起的 → 不判定 |
+| 3 | **区域内**有会话行 / `role="treeitem"` 搜索结果 / `[data-slot-error]` | 仍在渲染 → 不判定 |
+| 4 | 有 `[data-row-key="empty"]` 空列表占位 | 锚点仍匹配 → 不判定 |
+| 5 | 找不到 `[data-slot="sidebar.workspaces"]` 区域锚点 | 无法判断 → 不判定 |
+| 6 | 区域量出来是 0×0 | 被收起 / 隐藏 → 不判定 |
+| 7 | 区域已布局、里面有 `[role="tree"]` 但没行 | 空搜索 / 加载中 → 不判定 |
+| 8 | 区域已布局、无行、无树、无任何标记 | **判定结构变化** |
 
-> Checks 2–7 all query **inside `[data-slot="sidebar.workspaces"]`**. Other trees exist
-> elsewhere in 应用 (the right sidebar, settings pages); a document-wide query would let
-> them silently satisfy the whitelist and disable the safety net altogether.
+> 第 2–7 条全部**只在 `[data-slot="sidebar.workspaces"]` 区域内查**。页面别处也有树（右侧栏、设置页），若在整页范围查，真正的结构变化会被它们悄悄挡掉、自愈直接失效。
 
-Only case 8 acts, and only after four consecutive checks (~4.8 s). It then:
+只有第 8 种情况连续 4 次（约 4.8 秒）才动手，此时：
 
-1. **clears the hidden set, so everything is visible again** — it never leaves workspaces
-   hidden with no way back;
-2. shows a notice: “The sidebar layout changed, so hiding is unavailable. All workspaces
-   were shown again.”
+1. **自动清空隐藏列表 → 全部恢复显示**（绝不让东西藏没了找不回来）
+2. 弹出提示：「侧栏结构已变化，「隐藏工作区」暂不可用，已恢复全部显示。」
 
-So **narrowing the window, collapsing the sidebar manually, searching, or loading all
-preserve the hidden set**; only a real DOM change triggers the fallback. The worst case
-is still **a broken feature plus a visible reason**, never **workspaces silently gone**.
+也就是说：**压缩窗口、手动收起侧栏、搜索中、加载中，隐藏列表都原样保留**；只有 DOM 真的变了才自愈。最坏结果是「功能失效 + 用户能看见原因」，而不是「工作区凭空消失」。
 
-> Why case 8 is still worth keeping: hiding works by resolving
-> `data-row-key^="workspace:"` rows and writing `display:none` on them. If those rows
-> stop rendering, the plugin's own inline styles disappear with them and everything is
-> visible already — so in that ambiguous state, *keeping the ids* is the safer choice.
+> 为什么第 8 种情况值得保留：隐藏是靠行上的 `data-row-key^="workspace:"` 定位后写 `display:none` 实现的，行一旦渲染不出来，插件写下的隐藏样式也随行消失，本来就已经全可见了——所以在这种模糊态里**留着 id 才是最安全的选择**。
 
-### If that notice appears
+### 如果自愈提示出现了
 
-It means the sidebar DOM changed and the selectors need recalibration. Please open an
-[issue](https://github.com/roekdnd/dsh-hide-workspace/issues) with the notice text and
-your DSH version. The likely candidates are:
+这条警告意味着侧栏 DOM 变了，选择器需要重新校准。
+请带着提示内容开一个 [issue](https://github.com/roekdnd/dsh-hide-workspace/issues)，
+并附上 DSH 版本号。最可能需要调整的是：
 
-- is the workspace row still `data-row-key="workspace:<id>"`?
-- is the session row still `aria-selected="true"`?
-- is the `...` menu still `role="menu"` + `role="menuitem"`?
+- 工作区行是否还是 `data-row-key="workspace:<id>"`
+- 会话行是否还是 `aria-selected="true"`
+- `⋯` 菜单是否还是 `role="menu"` + `role="menuitem"`
 
 ---
 
-## Known limitations
+## 五、已知限制
 
-1. **No separate management panel.** Unhiding goes through the `...` menu, `Ctrl+H` or
-   the view-options filter.
-2. **No right-click on a workspace row.** DSH has no workspace-level menu slot, so there
-   is no injection point for a context menu.
-3. **Drag-to-reorder is inaccurate while hiding.** Hidden groups still take part in
-   drop-target maths, so dropping next to an invisible sibling commits an invisible
-   reorder. Avoid reordering while workspaces are hidden.
-4. **Search still finds hidden workspaces** — the escape hatch, on purpose.
-5. **“Only archived” plus “only hidden” can both be empty.** Under “only archived” DSH
-   does not render workspaces without archived sessions at all, so the list can be empty;
-   the plugin then shows “No workspaces match this filter” with a **Show all workspaces**
-   button.
-6. **Tree mode**: hiding a parent workspace hides its children too (child rows render
-   inside the parent block).
-7. **Clearing site data** (localStorage) drops the hidden list and every workspace becomes
-   visible again.
+1. **没有独立管理面板**。取消隐藏只能靠 `⋯` 菜单、`Ctrl+H` 或视图选项。
+2. **不能右键工作区行**。DSH 没有工作区级菜单槽，右键菜单也没有注入点。
+3. **隐藏模式下拖拽排序会不准**。被隐藏的组仍参与拖拽落点计算，
+   对着看不见的兄弟节点拖会提交一个看不见的换序。隐藏期间请避免拖动排序。
+4. **搜索仍能搜到已隐藏的工作区**（这是刻意的逃生通道）。
+5. **「仅显示已归档」+「仅显示已隐藏」可能全空**。
+   DSH 在"仅显示已归档"下会把没有归档会话的工作区整个不渲染，
+   此时列表可能为空 → 会显示「当前筛选下没有工作区」+【显示全部工作区】按钮。
+6. **树形模式**：隐藏父工作区会连子工作区一起隐藏（子行渲染在父块内部）。
+7. **localStorage 被清空**（清除站点数据）后，隐藏列表会丢失，全部工作区重新显示。
 
 ---
 
-## Tests
+## 六、自测
 
-```sh
+```
+cd dsh-hide-workspace
 node test/check-logic.mjs
 ```
 
-47 assertions, zero dependencies (no jsdom, no Chrome), well under a second:
+61 项断言，零依赖（不需要 jsdom / Chrome），跑一次不到 1 秒：
 
-- `blockOf` / `selectedWorkspaceId` resolve correctly on a realistic node tree, including
-  workspaces with sessions, **empty workspaces**, several workspaces side by side, and
-  session ownership.
-- **Loop-safety checks**: every per-pass write must be value-checked, selection is driven
-  by a state attribute, and a row rebuild must be triggered by a count mismatch.
-- **Behavioural filter tests** execute `applyHidden` against a fake DOM and assert what
-  each of the three filter modes actually leaves visible.
-- **Migration tests** cover the `dsh.better-sidebar.*` → `dsh.hide-workspace.*` key move.
+- `blockOf` / `selectedWorkspaceId` 在真实同构节点树上解析正确（含有会话的工作区、
+  **空工作区**、多工作区并列、会话归属）
+- **防循环结构检查**：每帧执行的写入必须"值变了才写"、勾选靠状态属性切换、
+  构建行必须由数量不符触发（因此不会每帧跑）
 
-Current result: **47 passed, 0 failed.**
+当前结果 **61 passed, 0 failed**。
 
-The full defect list with failure scenarios is in **`AUDIT.md`**.
+完整缺陷清单与故障场景见 **`AUDIT.md`**。
+
+### 实现上已修正的几个坑（都是实测发现的）
+
+| 问题 | 原因 | 现在的做法 |
+|---|---|---|
+| 工作区行找不到 | 文件夹行被 `HoverCard` 包了一层，会话行是它的**兄弟**而非子节点 | 从会话行向上找“只含一个工作区行”的祖先 |
+| 空工作区藏不掉 | 旧逻辑靠“有没有会话行”识别块边界 | 改为判断“是否含**其它**工作区行”，与会话无关 |
+| 菜单项带边框、样式不一致 | 手搓 `<button>` 无法复现官方样式 | **克隆**官方「重命名」整行（普通行，天然无红色） |
+| 菜单项是红色 | 克隆了「删除工作区」，它带 `_danger_<hash>` 类；按名字删类顶不住版本变化 | 改为克隆「重命名」行，并额外移除任何含 `danger` 的类 |
+| 菜单文本匹配失效 | 只读了第一个 `<span>`，那是空的图标位 | 读整行 `textContent` |
+| 「隐藏工作区」显示成原始 key | 从没注册 locale 字典 | 内联中英文字典并 `ctx.locale.register()` |
+| 隐藏完全没生效 | 用 `requestAnimationFrame` 刷新，窗口不可见时不触发，标志位永久卡死 | 改用微任务调度 |
+| **点「视图选项」整个界面卡死** | `MutationObserver` 监听整个 `body`，而每次渲染都写 DOM，写 → 观察 → 再写，无限循环 | 三重防护：①渲染期间加的 DOM 变更被忽略 ②所有写入改为"值变了才写" ③只监听节点增删，不监听属性/文本 |
+| 筛选选项排成一行、带原生边框 | 直接 `createElement('button')`，没套用菜单行的结构 | 改为**克隆官方筛选行**（分隔线、小标题、行本身都克隆）|
+| 选中项用 `✓` 字符，宽度会跳 | 官方是在末尾放独立图标位 | 复用官方的勾选元素，靠状态属性切换 |
 
 ---
 
-## Why the DOM and not the data layer
+## 七、为什么在 DOM 层做，而不是数据层
 
-DSH exposes no workspace-level extension point. Findings from `docs/research/`:
+DSH 没有提供工作区级的扩展点，这一节记录实测结论（详见 `docs/research/`）。
 
-### There is no usable slot
+### 没有可用的 slot
 
-`sidebar.workspaces` declares only **Session-scoped** child slots:
+`sidebar.workspaces` 只声明了 **Session 级**的子 slot：
 
 ```
 sidebar.workspaces
@@ -214,61 +202,61 @@ sidebar.workspaces.session.menu.item      ← Session
 sidebar.workspaces.session.row.action     ← Session
 ```
 
-The workspace row `...` menu and the View options menu are both **hardcoded closed
-arrays** with no injection point, so both of this plugin’s entry points are DOM-injected.
+工作区行的 `⋯` 菜单和「视图选项」菜单都是**硬编码的闭合数组**，没有任何注入点。
+本插件的两个入口因此是 DOM 注入的。
 
-### Filtering in the data layer is not possible
+### 不能在数据层过滤
 
-`groupByWorkspace()` builds its `accounted` set from the `workspaces` array it is given,
-then trails every unaccounted session into an “Ungrouped” bucket. Dropping a workspace
-from that list therefore **dumps its sessions into “Ungrouped”** as ownerless rows.
+`groupByWorkspace()` 用传入的 `workspaces` 数组构建 `accounted` 集合，
+再把没归属的会话收进「未分组」。所以**从一个工作区从列表里摘掉，它的会话会掉进「未分组」**，
+变成一堆无主条目。
 
-### Approaches that were tried and do not work
+### 尝试过但不可行
 
-| Approach | Result |
+| 方案 | 结果 |
 |---|---|
-| Shadow `sidebar.workspaces` with `priority: -100` | Throws `slot "<key>" is already declared`. Omitting its five child slots kills session menus, hover actions and the add-workspace flow. Doing it properly means forking ~4100 lines |
-| `provideRoot({hooks:{workspaces}})` | Throws `duplicate root standard hook`; `workspaces` is a Cordis Service and duplicate registration throws |
-| Put a custom field into `workspace.json` | The record schema is zod **strip mode**, so extra keys are dropped **silently and without error** (reproduce with `tools/scratch/zod-strip-proof.mjs`) |
+| 用 `priority: -100` 覆盖 `sidebar.workspaces` | 会抛 `slot "<key>" is already declared`。省略 5 个子 slot 又会连带干掉会话菜单、悬停按钮和「添加工作区」流程。真要这么做等于 fork 约 4100 行 |
+| `provideRoot({hooks:{workspaces}})` | 抛 `duplicate root standard hook`，`workspaces` 是 Cordis Service，重复注册直接报错 |
+| 往 `workspace.json` 塞自定义字段 | 该记录是 zod **strip 模式**，多余字段**静默丢弃且不报错**（`tools/scratch/zod-strip-proof.mjs` 可复现） |
 
-### Where state lives, and why
+### 存储位置
 
-The hidden set is a **device-local view preference** in `localStorage`, matching how
-`ui-workspace` persists its own expansion state and session ordering.
+隐藏集合是**设备本地的视图偏好**，存在 `localStorage`，
+和 `ui-workspace` 自己持久化展开状态、会话排序的做法一致。
 
-> Upgrading from the old `dsh-better-sidebar` name migrates the old `dsh.better-sidebar.*`
-> keys once, so already-hidden workspaces are not lost.
+> 从旧版 `dsh-better-sidebar` 升级时，旧的 `dsh.better-sidebar.*` 键会被自动迁移一次，
+> 已隐藏的工作区不会丢失。
 
 ---
-
-## File layout
+## 八、文件结构
 
 ```
 dsh-hide-workspace/
-├─ package.json         dsh.bundle.patch + dsh.client declarations
-├─ cordis.patch.yml     the bundle mount row
-├─ index.js             host half (intentionally empty: pure UI plugin)
-├─ client.js            all of the logic
+├─ package.json          dsh.bundle.patch + dsh.client 声明
+├─ cordis.patch.yml      bundle 自带的挂载行
+├─ index.js              host 半边（纯 UI 插件，故意为空）
+├─ client.js             ← 全部逻辑
 ├─ icon.svg
-├─ locale/{zh,en}.json  plugin card copy
-├─ test/check-logic.mjs self-test (not published)
-├─ docs/                research and design notes
-│   ├─ research/        DSH source analysis: packaging, filtering, persistence
-│   └─ design/          design discussion
-└─ tools/               scripts that re-extract DSH (the asar itself is not committed)
+├─ locale/{zh,en}.json   面板卡片文案
+├─ test/check-logic.mjs  自测（不随包发布）
+├─ docs/                 ← 调研与设计记录
+│   ├─ research/         DSH 源码分析：打包、过滤可行性、持久化
+│   └─ design/           方案讨论
+└─ tools/                重新解包 DSH 的脚本（asar 本身不入库）
 ```
 
-`files` in `package.json` publishes only the runtime paths: `index.js`, `client.js`,
-`cordis.patch.yml`, `locale/*.json`, `icon.svg`. `docs/`, `tools/` and `test/` stay in the
-repository for reading and never enter the installed package.
+### package.json 的 `files` 只发布运行所需的路径
+
+`index.js`、`client.js`、`cordis.patch.yml`、`locale/*.json`、`icon.svg`、
+`README.md`、`README.en.md`、`LICENSE`、`NOTICE`。
+`docs/`、`tools/`、`test/` 留在仓库里供阅读，不会进入安装包。
 
 ---
 
-## License
+## 九、License
 
-This plugin: MIT, see [`LICENSE`](LICENSE).
+本插件：MIT，见 [`LICENSE`](LICENSE)。
 
-**应用 source excerpts** quoted under `docs/research/` and in parts of `AUDIT.md` are
-Copyright (c) 2026 DeepSeek and used under the MIT License; see [`NOTICE`](NOTICE). They exist
-so every finding can be traced to the implementation it came from. They are not part of this
-plugin's runtime code (`docs/` is not published with the package).
+`docs/research/` 与部分 `AUDIT.md` 中引用的 **应用 源码片段**版权归 DeepSeek，
+依 MIT 许可使用，声明见 [`NOTICE`](NOTICE)。这些片段只用于让每条结论可回溯到
+它依据的实现，不属于本插件的运行代码（`docs/` 不随包发布）。
