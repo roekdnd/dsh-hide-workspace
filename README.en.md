@@ -27,7 +27,7 @@ That is a deliberate escape hatch.
 This plugin is a **bundle**: it ships `cordis.patch.yml` and a `dsh.bundle.patch`
 declaration, so it appears in Settings → Plugins with a card, a toggle and an uninstall.
 
-### Install from inside 应用 → Settings → Plugins
+### Install from inside the app → Settings → Plugins
 
 > **Do not run `dsh plugin --profile desktop add ...`.** The CLI refuses it outright:
 >
@@ -45,7 +45,7 @@ Install it in the app instead:
 1. Open **Settings → Plugins**
 2. Click **Install plugin**
 3. Put one of the forms below into "package name or address", then click **Install**
-4. **Restart 应用**
+4. **Restart the app**
 
 | Source | What to enter |
 |---|---|
@@ -57,7 +57,7 @@ Install it in the app instead:
 > credentials belong in your local `~/.npmrc`. It asks you to confirm the source is
 > trusted, because plugins run with your permissions.
 
-After installing, **restart 应用** (a new package needs a restart to resolve). After that,
+After installing, **restart the app** (a new package needs a restart to resolve). After that,
 editing `client.js` only needs a page refresh — there is no build step, `client.js` *is*
 the artifact.
 
@@ -124,7 +124,7 @@ machinery at all:
 | 8 | region laid out, no rows, no tree, no markers | **structure changed** |
 
 > Checks 2–7 all query **inside `[data-slot="sidebar.workspaces"]`**. Other trees exist
-> elsewhere in 应用 (the right sidebar, settings pages); a document-wide query would let
+> elsewhere in the app (the right sidebar, settings pages); a document-wide query would let
 > them silently satisfy the whitelist and disable the safety net altogether.
 
 Only case 8 acts, and only after four consecutive checks (~4.8 s). It then:
@@ -182,7 +182,7 @@ your DSH version. The likely candidates are:
 node test/check-logic.mjs
 ```
 
-47 assertions, zero dependencies (no jsdom, no Chrome), well under a second:
+61 assertions, zero dependencies (no jsdom, no Chrome), well under a second:
 
 - `blockOf` / `selectedWorkspaceId` resolve correctly on a realistic node tree, including
   workspaces with sessions, **empty workspaces**, several workspaces side by side, and
@@ -193,7 +193,7 @@ node test/check-logic.mjs
   each of the three filter modes actually leaves visible.
 - **Migration tests** cover the `dsh.better-sidebar.*` → `dsh.hide-workspace.*` key move.
 
-Current result: **47 passed, 0 failed.**
+Current result: **61 passed, 0 failed.**
 
 The full defect list with failure scenarios is in **`AUDIT.md`**.
 
@@ -269,7 +269,7 @@ the installed package.
 
 This plugin: MIT, see [`LICENSE`](LICENSE).
 
-**应用 source excerpts** quoted under `docs/research/` and in parts of `AUDIT.md` are
+**DeepSeek Harness source excerpts** quoted under `docs/research/` and in parts of `AUDIT.md` are
 Copyright (c) 2026 DeepSeek and used under the MIT License; see [`NOTICE`](NOTICE). They exist
 so every finding can be traced to the implementation it came from. They are not part of this
 plugin's runtime code (`docs/` is not published with the package).

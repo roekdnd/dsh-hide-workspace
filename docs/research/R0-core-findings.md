@@ -1,6 +1,6 @@
 # R0 — Core findings (verified against the extracted asar)
 
-Evidence base: the packages unpacked from 应用 0.2.2-rc.1's `app.asar`. Every claim below cites
+Evidence base: the packages unpacked from the app's 0.2.2-rc.1 `app.asar`. Every claim below cites
 the `file:line` it was read from, so it can be re-checked against a different build by looking up
 the same symbol rather than the same line number.
 

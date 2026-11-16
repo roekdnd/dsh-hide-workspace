@@ -1,7 +1,7 @@
 # R2 (partial) — Complete workspace-level slot inventory
 
 How this list was produced: `grep -rh 'slots.inject("' --include=client.js */lib/*.js` across
-all 305 packages installed with 应用 0.2.2-rc.1, plus a full scan of every slot identifier
+all 305 packages installed with the app at 0.2.2-rc.1, plus a full scan of every slot identifier
 containing `workspace`.
 
 Every slot name below is an explicit string literal in the shipped packages, so the list can be

@@ -1,18 +1,18 @@
-# Research context — 应用 sidebar extension points
+# Research context — the app's sidebar extension points
 
-> **Provenance.** The code excerpts quoted in this directory are from 应用 (DeepSeek Harness),
+> **Provenance.** The code excerpts quoted in this directory are from DSH (DeepSeek Harness),
 > Copyright (c) 2026 DeepSeek, MIT licensed. See `NOTICE` at the repository root. They are
 > reproduced here so each finding can be traced to the implementation it came from.
 
 ## Goal
-Build a 应用 plugin that improves the left sidebar while keeping the shipped sidebar intact.
+Build a plugin for the app that improves the left sidebar while keeping the shipped sidebar intact.
 At the time of this research a workspace could only be **renamed** or **deleted**; the goal was to
 add **temporarily hide a workspace** (reversible, non-destructive).
 
 This directory records the feasibility analysis behind that goal, including the options that were
 ruled out and why.
 
-> **Baseline.** The findings below were produced against 应用 **0.2.1-rc.3**. Line numbers quoted
+> **Baseline.** The findings below were produced against the app **0.2.1-rc.3**. Line numbers quoted
 > throughout this directory refer to that build. The shipped `client.js` was later re-checked against
 > **0.2.2-rc.2**; see `AUDIT.md` and the self-healing section of the READMEs for what changed. When
 > reading a `WS:NNNN` anchor against a different build, look up the surrounding symbol rather than
@@ -34,7 +34,7 @@ ruled out and why.
    `tables.workspaces[id] = {path,title,sessionIds[],createdAt,updatedAt}`)
 - DSH version: 0.2.1-rc.3
 - Versions: node v24.22.1, npm 11.19.1, pnpm 11.22.0, python 3.11.0
-- Note: 应用 was running while these measurements were taken; nothing was modified.
+- Note: the app was running while these measurements were taken; nothing was modified.
 
 ## Key packages
 - `@deepseek-ai/dsh-client-ui-sidebar`  — sidebar SHELL. Owns seats `sidebar.workspaces`, `sidebar.settings`,

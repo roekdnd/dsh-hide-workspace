@@ -1157,7 +1157,7 @@ function apply(ctx) {
   }
 
   /**
-   * The sidebar region that hosts the workspace tree: the slot outlet anchor 应用
+   * The sidebar region that hosts the workspace tree: the slot outlet anchor that the app
    * renders around `sidebar.workspaces`. It is emitted with `display:contents`, so it
    * is a 0x0 box by design and must be measured via its parent element - the element
    * the host actually hides when the panel is collapsed away.
@@ -1197,7 +1197,7 @@ function apply(ctx) {
    * safer outcome in every ambiguous state.
    *
    * All row checks below are scoped to the workspace region rather than the document:
-   * other trees exist elsewhere in 应用 (the right sidebar, settings), and letting them
+   * other trees exist elsewhere in the app (the right sidebar, settings), and letting them
    * satisfy the whitelist would silently disable the guard.
    */
   function guardAnchors() {

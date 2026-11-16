@@ -29,6 +29,9 @@
     "./locale/*.json": "./locale/*.json",
     "./icon": "./icon.svg"
   },
+  "scripts": {
+    "test": "node test/check-logic.mjs"
+  },
   "files": [
     "index.js",
     "client.js",

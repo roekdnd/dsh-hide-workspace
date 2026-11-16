@@ -11,7 +11,7 @@ Third-party code quoted in the documentation
 --------------------------------------------------------------------------------
 
 The files under `docs/research/`, and parts of `AUDIT.md`, quote excerpts of
-source code from 应用 (DeepSeek Harness), published by DeepSeek. Those excerpts are
+source code from DSH (DeepSeek Harness), published by DeepSeek. Those excerpts are
 included so that every research conclusion in this repository can be traced
 back to the exact implementation it was derived from, instead of resting on an
 unverifiable assertion.
@@ -24,7 +24,7 @@ Those excerpts are:
 The quoted material is limited to the minimum needed to document a finding.
 It is not part of this plugin's runtime code: nothing under `docs/` ships in the
 published package (see the `files` field in `package.json`), and `client.js`
-contains no copied 应用 source.
+contains no copied DSH source.
 
 Upstream packages quoted, with their declared licenses as shipped:
 
@@ -40,7 +40,7 @@ example `WS:1091` for `dsh-client-ui-workspace/lib/client.js` line 1091), so a
 reader can verify it against the installed application.
 
 --------------------------------------------------------------------------------
-MIT License (as it applies to the quoted 应用 source)
+MIT License (as it applies to the quoted DSH source)
 --------------------------------------------------------------------------------
 
 MIT License
