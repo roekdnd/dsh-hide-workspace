@@ -11,7 +11,7 @@ Third-party code quoted in the documentation
 --------------------------------------------------------------------------------
 
 The files under `docs/research/`, and parts of `AUDIT.md`, quote excerpts of
-source code from 应用 (AI Assistant), published by DeepSeek. Those excerpts are
+source code from 应用 (DeepSeek Harness), published by DeepSeek. Those excerpts are
 included so that every research conclusion in this repository can be traced
 back to the exact implementation it was derived from, instead of resting on an
 unverifiable assertion.

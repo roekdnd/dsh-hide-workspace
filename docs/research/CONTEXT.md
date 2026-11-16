@@ -1,6 +1,6 @@
 # Research context — 应用 sidebar extension points
 
-> **Provenance.** The code excerpts quoted in this directory are from 应用 (AI Assistant),
+> **Provenance.** The code excerpts quoted in this directory are from 应用 (DeepSeek Harness),
 > Copyright (c) 2026 DeepSeek, MIT licensed. See `NOTICE` at the repository root. They are
 > reproduced here so each finding can be traced to the implementation it came from.
 
